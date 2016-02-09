@@ -53,15 +53,25 @@ RE_LINK = r'''(?x)(?i)
 class MagiclinkPattern(LinkPattern):
     """Convert html, ftp links to clickable links."""
 
+    def __init__(self, *args, **kwargs):
+        """Initialize."""
+
+        self.strip_protocol = kwargs.pop('strip_protocol', False)
+
+        super(MagiclinkPattern, self).__init__(*args, **kwargs)
+
     def handleMatch(self, m):
         """Handle URL matches."""
 
         el = util.etree.Element("a")
+        el.text = m.group(2)
         if m.group("www"):
             href = "http://%s" % m.group(2)
         else:
             href = m.group(2)
-        el.text = m.group(2)
+            if self.strip_protocol:
+                el.text = el.text[el.text.find("://")+3:]
+                
         el.set("href", self.sanitize_url(self.unescape(href.strip())))
 
         return el
@@ -75,7 +85,7 @@ class MagicMailPattern(LinkPattern):
 
         el = util.etree.Element("a")
         href = "mailto:%s" % m.group(2)
-        el.text = m.group(2)[m.group(2).find("://")+3:]
+        el.text = m.group(2)
         el.set("href", self.sanitize_url(self.unescape(href.strip())))
 
         return el
@@ -84,10 +94,23 @@ class MagicMailPattern(LinkPattern):
 class MagiclinkExtension(Extension):
     """Add Easylink extension to Markdown class."""
 
+    def __init__(self, *args, **kwargs):
+        """Initialize."""
+
+        self.config = {
+            'strip_protocol': [
+                False,
+                "If 'True', links are displayed without the initial ftp://, http:// or https://"
+                "- Default: False"
+            ]
+        }
+        super(MagiclinkExtension, self).__init__(*args, **kwargs)
+
     def extendMarkdown(self, md, md_globals):
         """Add support for turning html links and emails to link tags."""
 
-        md.inlinePatterns.add("magic-link", MagiclinkPattern(RE_LINK, md), "<not_strong")
+        md.inlinePatterns.add("magic-link", MagiclinkPattern(RE_LINK, md, strip_protocol=self.getConfigs()['strip_protocol']),
+                              "<not_strong")
         md.inlinePatterns.add("magic-mail", MagicMailPattern(RE_MAIL, md), "<not_strong")
 
 

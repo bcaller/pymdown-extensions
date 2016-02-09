@@ -100,6 +100,12 @@ inlinehilite_plaintext:
 magiclink:
   extensions:
     pymdownx.magiclink:
+      strip_protocol: false
+
+magiclink_strip_http:
+  extensions:
+    pymdownx.magiclink:
+      strip_protocol: true
 
 mark:
   extensions:
