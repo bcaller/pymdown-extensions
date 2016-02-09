@@ -75,7 +75,7 @@ class MagicMailPattern(LinkPattern):
 
         el = util.etree.Element("a")
         href = "mailto:%s" % m.group(2)
-        el.text = m.group(2)
+        el.text = m.group(2)[m.group(2).find("://")+3:]
         el.set("href", self.sanitize_url(self.unescape(href.strip())))
 
         return el
